@@ -1,0 +1,54 @@
+#!/bin/sh
+
+PATH=/opt/bin:/opt/sbin:/usr/bin:/bin
+LOOP=/opt/bin/vpn-watchdog-loop.sh
+PIDFILE=/opt/var/run/vpn-watchdog-loop.pid
+LOG=/opt/var/log/vpn-watchdog-loop.log
+
+running() {
+    [ -s "$PIDFILE" ] || return 1
+    PID=$(cat "$PIDFILE")
+    kill -0 "$PID" 2>/dev/null || return 1
+    [ -r "/proc/$PID/cmdline" ] || return 1
+    tr '\000' ' ' < "/proc/$PID/cmdline" |
+        grep -Fq "$LOOP"
+}
+
+case "$1" in
+    start)
+        if running; then
+            echo "VPN Optimizer watchdog already running"
+            exit 0
+        fi
+        mkdir -p /opt/var/run /opt/var/log
+        nohup /bin/sh "$LOOP" \
+            </dev/null >>"$LOG" 2>&1 &
+        echo $! > "$PIDFILE"
+        sleep 2
+        if running; then
+            echo "VPN Optimizer watchdog started, PID=$(cat "$PIDFILE")"
+        else
+            echo "VPN Optimizer watchdog failed to start"
+            exit 1
+        fi
+        ;;
+    stop)
+        if running; then
+            kill "$(cat "$PIDFILE")"
+        fi
+        rm -f "$PIDFILE"
+        echo "VPN Optimizer watchdog stopped"
+        ;;
+    check)
+        if running; then
+            echo "VPN Optimizer watchdog is running, PID=$(cat "$PIDFILE")"
+        else
+            echo "VPN Optimizer watchdog is not running"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|check}"
+        exit 1
+        ;;
+esac

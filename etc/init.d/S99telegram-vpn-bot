@@ -1,0 +1,52 @@
+#!/bin/sh
+
+BOT=/opt/etc/telegram-vpn-bot/bot.py
+PIDFILE=/opt/var/run/telegram-vpn-bot.pid
+LOG=/opt/var/log/telegram-vpn-bot.log
+
+running() {
+    [ -s "$PIDFILE" ] || return 1
+    PID=$(cat "$PIDFILE")
+    kill -0 "$PID" 2>/dev/null || return 1
+    grep -aq 'telegram-vpn-bot/bot.py' "/proc/$PID/cmdline" 2>/dev/null
+}
+
+case "$1" in
+    start)
+        if running; then
+            echo "Telegram VPN bot already running"
+            exit 0
+        fi
+        mkdir -p /opt/var/run /opt/var/log
+        nohup /opt/bin/python3 -u "$BOT" \
+            </dev/null >>"$LOG" 2>&1 &
+        echo $! > "$PIDFILE"
+        sleep 2
+        if running; then
+            echo "Telegram VPN bot started, PID=$(cat "$PIDFILE")"
+        else
+            echo "Telegram VPN bot failed to start"
+            tail -n 10 "$LOG"
+            exit 1
+        fi
+        ;;
+    stop)
+        if running; then
+            kill "$(cat "$PIDFILE")"
+        fi
+        rm -f "$PIDFILE"
+        echo "Telegram VPN bot stopped"
+        ;;
+    check)
+        if running; then
+            echo "Telegram VPN bot is running, PID=$(cat "$PIDFILE")"
+        else
+            echo "Telegram VPN bot is not running"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|check}"
+        exit 1
+        ;;
+esac

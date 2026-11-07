@@ -1,0 +1,23 @@
+# VPN Optimizer v2.5.1. Это шаблон, запуск с заглушками запрещён.
+# Рабочий файл: /opt/etc/vpn-optimizer.conf, владелец root, права 0600.
+# KEY=VALUE: без кавычек, команд, пробелов вокруг = и комментариев после значения.
+# ID и теги: латинские буквы, цифры, _ и -; первый символ не дефис.
+SUB_ID=REPLACE_WITH_SUBSCRIPTION_ID
+SELECTOR=REPLACE_WITH_SELECTOR_TAG
+# Заранее созданный отдельный inline rule-set только для доменов Optimizer.
+RULESET_TAG=REPLACE_WITH_DEDICATED_RULESET_TAG
+# Примеры портов: сверь с настройками своей установки. API без авторизации.
+# Используй локальные API; не открывай эти порты в интернет.
+AWGM_URL=http://127.0.0.1:2222
+CLASH_URL=http://127.0.0.1:9099
+PROXY_URL=http://127.0.0.1:11000
+TG_BOT_TOKEN=REPLACE_WITH_TELEGRAM_BOT_TOKEN
+TG_ALLOWED_IDS=REPLACE_WITH_COMMA_SEPARATED_POSITIVE_USER_IDS
+# Час 00..23; cron проверяет готовность каждые 10 минут внутри этого часа.
+NIGHT_HOUR=03
+NIGHT_TZ=LOCAL
+# LOCAL — системное время роутера. MSK-3 — Москва. UTC0 — UTC.
+# Фиксированный POSIX-пояс: UTC-3 означает UTC+03:00, UTC+5:30 — UTC-05:30.
+# UTC+/-0..14 с необязательными :00..59; летнее время для фиксированных поясов не применяется.
+# Имена регионов и сложные POSIX-правила не поддерживаются.
+# Если оба NIGHT_* отсутствуют, используется прежний режим 03:00 MSK-3.
